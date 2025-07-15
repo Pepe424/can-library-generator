@@ -50,11 +50,18 @@ jobs:
         env:
           CERTIFICATE_P12: ${{ secrets.CERTIFICATE_P12 }}
 
-      - name: Sign the .app
+      - name: Sign .app and all nested binaries
         run: |
           APP_PATH="build/canlibrarygenerator/macos/app/CANLibraryGenerator.app"
-          echo "Signing $APP_PATH"
-          codesign --deep --force --options runtime --timestamp --sign "Developer ID Application: Josef Drozd (CY8FTFVMDA)" "$APP_PATH"
+          echo "Recursively signing all nested binaries in $APP_PATH..."
+          find "$APP_PATH" -type f \( -name "*.dylib" -or -name "*.so" -or -perm +111 \) | while read -r BIN; do
+            echo "Signing $BIN"
+            codesign --force --timestamp --options runtime \
+              --sign "Developer ID Application: Josef Drozd (CY8FTFVMDA)" "$BIN" || true
+          done
+          echo "Signing top-level .app..."
+          codesign --deep --force --timestamp --options runtime \
+            --sign "Developer ID Application: Josef Drozd (CY8FTFVMDA)" "$APP_PATH"
 
       - name: Sign the .dmg
         run: |
