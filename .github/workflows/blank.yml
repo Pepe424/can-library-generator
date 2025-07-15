@@ -37,8 +37,8 @@ jobs:
         run: |
           briefcase create macOS
           briefcase build macOS
-          briefcase package macOS --adhoc-sign
-
+          briefcase package macOS
+      
       - name: Decode and import certificate
         run: |
           echo "$CERTIFICATE_P12" | base64 --decode > certificate.p12
@@ -49,13 +49,13 @@ jobs:
           security set-key-partition-list -S apple-tool:,apple: -s -k temp_pass build.keychain
         env:
           CERTIFICATE_P12: ${{ secrets.CERTIFICATE_P12 }}
-
+      
       - name: Sign the .app
         run: |
           APP_PATH=$(find dist -name "*.app" | head -n 1)
           echo "Signing $APP_PATH"
           codesign --deep --force --options runtime --sign "Developer ID Application: Josef Drozd (CY8FTFVMDA)" "$APP_PATH"
-
+      
       - name: Sign the .dmg
         run: |
           DMG_PATH=$(find dist -name "*.dmg" | head -n 1)
