@@ -54,7 +54,7 @@ jobs:
         run: |
           APP_PATH="build/canlibrarygenerator/macos/app/CANLibraryGenerator.app"
           echo "Signing $APP_PATH"
-          codesign --deep --force --options runtime --sign "Developer ID Application: Josef Drozd (CY8FTFVMDA)" "$APP_PATH"
+          codesign --deep --force --options runtime --timestamp --sign "Developer ID Application: Josef Drozd (CY8FTFVMDA)" "$APP_PATH"
 
       - name: Sign the .dmg
         run: |
@@ -65,12 +65,6 @@ jobs:
       - name: Verify .app codesign
         run: |
           codesign --verify --deep --strict --verbose=2 "build/canlibrarygenerator/macos/app/CANLibraryGenerator.app"
-
-      - name: Set up notarytool credentials
-        run: |
-          security add-generic-password -a "$USER" \
-            -s "AC_PASSWORD" -w "${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}" \
-            /Users/runner/Library/Keychains/login.keychain-db
 
       - name: Notarize .dmg
         run: |
