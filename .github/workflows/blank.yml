@@ -37,8 +37,8 @@ jobs:
         run: |
           briefcase create macOS
           briefcase build macOS
-          briefcase package macOS --adhoc-sign
-      
+          briefcase package macOS
+
       - name: Decode and import certificate
         run: |
           echo "$CERTIFICATE_P12" | base64 --decode > certificate.p12
@@ -49,13 +49,13 @@ jobs:
           security set-key-partition-list -S apple-tool:,apple: -s -k temp_pass build.keychain
         env:
           CERTIFICATE_P12: ${{ secrets.CERTIFICATE_P12 }}
-      
+
       - name: Sign the .app
         run: |
           APP_PATH="build/canlibrarygenerator/macos/app/CANLibraryGenerator.app"
           echo "Signing $APP_PATH"
           codesign --deep --force --options runtime --sign "Developer ID Application: Josef Drozd (CY8FTFVMDA)" "$APP_PATH"
-      
+
       - name: Sign the .dmg
         run: |
           DMG_PATH=$(find dist -name "*.dmg" | head -n 1)
@@ -66,16 +66,26 @@ jobs:
         run: |
           codesign --verify --deep --strict --verbose=2 "build/canlibrarygenerator/macos/app/CANLibraryGenerator.app"
 
-      - name: Notarize app
-        uses: devbotsxyz/xcode-notarize@v1
-        with:
-          product-path: build/canlibrarygenerator/macos/app/CANLibraryGenerator.app
-          appstore-connect-username: ${{ secrets.APPLE_ID }}
-          appstore-connect-password: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
-
-      - name: Staple notarization ticket
+      - name: Set up Apple Notarytool credentials
         run: |
-          xcrun stapler staple build/canlibrarygenerator/macos/app/CANLibraryGenerator.app
+          xcrun notarytool store-credentials \
+            --apple-id "${{ secrets.APPLE_ID }}" \
+            --password "${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}" \
+            --team-id CY8FTFVMDA \
+            --keychain-profile "notary-profile"
+
+      - name: Notarize .dmg
+        run: |
+          DMG_PATH=$(find dist -name "*.dmg" | head -n 1)
+          echo "Submitting $DMG_PATH for notarization..."
+          xcrun notarytool submit "$DMG_PATH" \
+            --keychain-profile "notary-profile" \
+            --wait
+
+      - name: Staple notarization ticket to .dmg
+        run: |
+          DMG_PATH=$(find dist -name "*.dmg" | head -n 1)
+          xcrun stapler staple "$DMG_PATH"
 
       - name: Upload as artifact (always)
         uses: actions/upload-artifact@v4
