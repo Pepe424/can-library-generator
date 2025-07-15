@@ -66,20 +66,20 @@ jobs:
         run: |
           codesign --verify --deep --strict --verbose=2 "build/canlibrarygenerator/macos/app/CANLibraryGenerator.app"
 
-      - name: Set up Apple Notarytool credentials
+      - name: Set up notarytool credentials
         run: |
-          xcrun notarytool store-credentials \
-            --apple-id "${{ secrets.APPLE_ID }}" \
-            --password "${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}" \
-            --team-id CY8FTFVMDA \
-            --keychain-profile "notary-profile"
+          security add-generic-password -a "$USER" \
+            -s "AC_PASSWORD" -w "${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}" \
+            /Users/runner/Library/Keychains/login.keychain-db
 
       - name: Notarize .dmg
         run: |
           DMG_PATH=$(find dist -name "*.dmg" | head -n 1)
           echo "Submitting $DMG_PATH for notarization..."
           xcrun notarytool submit "$DMG_PATH" \
-            --keychain-profile "notary-profile" \
+            --apple-id "${{ secrets.APPLE_ID }}" \
+            --password "@keychain:AC_PASSWORD" \
+            --team-id CY8FTFVMDA \
             --wait
 
       - name: Staple notarization ticket to .dmg
