@@ -37,7 +37,7 @@ jobs:
         run: |
           briefcase create macOS
           briefcase build macOS
-          briefcase package macOS -no-sign
+          briefcase package macOS --adhoc-sign
 
       - name: Decode and import certificate
         run: |
