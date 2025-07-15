@@ -39,17 +39,12 @@ jobs:
           briefcase build macOS
           briefcase package macOS --adhoc-sign
 
-      - name: Decode and import certificate
-        run: |
-          echo "$CERTIFICATE_P12" | base64 --decode > certificate.p12
-          security create-keychain -p temp_pass build.keychain
-          security default-keychain -s build.keychain
-          security unlock-keychain -p temp_pass build.keychain
-          security import certificate.p12 -k build.keychain -P "${{ secrets.CERTIFICATE_PASSWORD }}" -T /usr/bin/codesign
-          security set-key-partition-list -S apple-tool:,apple: -s -k temp_pass build.keychain
-        env:
-          CERTIFICATE_P12: ${{ secrets.CERTIFICATE_P12 }}
-
+      - name: Import Apple Code Signing Certificates
+        uses: apple-actions/import-codesign-certs@v2
+        with:
+          p12-file-base64: ${{ secrets.CERTIFICATE_P12 }}
+          p12-password: ${{ secrets.CERTIFICATE_PASSWORD }}
+        
       - name: Sign .app and all nested binaries
         run: |
           APP_PATH="build/canlibrarygenerator/macos/app/CANLibraryGenerator.app"
