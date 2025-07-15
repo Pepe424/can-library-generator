@@ -52,7 +52,7 @@ jobs:
       
       - name: Sign the .app
         run: |
-          APP_PATH=$(find dist -name "*.app" | head -n 1)
+          APP_PATH=$(find .briefcase -name "*.app" | head -n 1)
           echo "Signing $APP_PATH"
           codesign --deep --force --options runtime --sign "Developer ID Application: Josef Drozd (CY8FTFVMDA)" "$APP_PATH"
       
