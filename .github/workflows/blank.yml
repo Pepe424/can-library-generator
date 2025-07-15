@@ -78,7 +78,7 @@ jobs:
           echo "Submitting $DMG_PATH for notarization..."
           xcrun notarytool submit "$DMG_PATH" \
             --apple-id "${{ secrets.APPLE_ID }}" \
-            --password "@keychain:AC_PASSWORD" \
+            --password "${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}" \
             --team-id "CY8FTFVMDA" \
             --wait
 
