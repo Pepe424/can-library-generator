@@ -1,9 +1,7 @@
 name: Build, Run and Release Python App
 
 on:
-  push:
-    tags:
-      - 'v*'
+  workflow_dispatch:
 
 jobs:
   set_version:
