@@ -45,6 +45,22 @@ jobs:
           briefcase build macOS
           briefcase package macOS -i "Developer ID Application: Josef Drozd (CY8FTFVMDA)" --no-notarize
 
+      - name: Notarize DMG with Apple
+        run: |
+          DMG_PATH=$(find dist -name "*.dmg" | head -n 1)
+          echo "Notarizing $DMG_PATH..."
+          xcrun notarytool submit "$DMG_PATH" \
+            --apple-id "${{ secrets.APPLE_ID }}" \
+            --password "${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}" \
+            --team-id "CY8FTFVMDA" \
+            --wait
+
+      - name: Staple the notarization ticket to DMG
+        run: |
+          DMG_PATH=$(find dist -name "*.dmg" | head -n 1)
+          echo "Stapling $DMG_PATH..."
+          xcrun stapler staple "$DMG_PATH"
+
       - name: Upload as artifact (always)
         uses: actions/upload-artifact@v4
         with:
