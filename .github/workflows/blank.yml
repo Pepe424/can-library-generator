@@ -79,7 +79,7 @@ jobs:
           xcrun notarytool submit "$DMG_PATH" \
             --apple-id "${{ secrets.APPLE_ID }}" \
             --password "@keychain:AC_PASSWORD" \
-            --team-id CY8FTFVMDA \
+            --team-id "CY8FTFVMDA" \
             --wait
 
       - name: Staple notarization ticket to .dmg
